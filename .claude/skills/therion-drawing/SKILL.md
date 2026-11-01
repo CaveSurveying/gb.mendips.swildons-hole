@@ -29,33 +29,6 @@ general rules the review taught (walls, symbols, passages over
 passages, cross sections, the pitfalls and how to review with someone
 who knows the cave) are in `Style.md`.
 
-## Not in Style.md yet
-
-General points from the review that `Style.md` does not have yet;
-they go there when its rules are reviewed.
-
-- Do not close the gaps between walls: no invisible walls, and no
-  closed invisible fill line with the walls set `-outline none`.
-  Therion closes the outline itself, joining each wall's end to the
-  nearest free end of another with a straight line
-  (`thscrap::get_outline`). Converted sketches can be so broken up that
-  this joining goes wrong (it jumps across the passage, or closes the
-  outline early); only there does `tidy` keep a gap filled, with the
-  wall carried on across a short one or a presumed wall across a longer
-  one. `therion_chain` in `tools/sketch2therion/tidy.py` checks it.
-- A line inside the passage is not a wall: a `line border` (a ledge,
-  the edge of another level) or a step (see `Style.md`, "Symbols: lines"). In the
-  streamway it's mostly the edge of a step down (a shelf, the stream in
-  the low part): `line floor-step`, with the low side on the line's
-  LEFT (Therion draws the ticks there). The low side is where the water
-  is (flow arrows, pools), not necessarily where the survey line runs.
-  One line per step, and steps don't run through the water.
-- Kinks and folds are conversion faults, never cave: a point where a
-  line steps back on itself over a short distance, or a wall stub
-  under 30 cm turning back off another wall's end. Remove them.
-- Open edited files in xtherion and select a few lines: it should not
-  report errors.
-
 ## .thconfig layouts
 
 These are set in `gb_layout.thc` and `altitude-colours.th`:

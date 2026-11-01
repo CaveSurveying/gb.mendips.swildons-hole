@@ -145,8 +145,9 @@ Stanton/                  W. I. Stanton's survey, one folder per trip (1951-62)
 
 A new trip's sketch goes in a new folder in its area, named after its survey,
 with its .th named the same (for example
-`Streamway/Sump1ToSwildons2/Sump1ToSwildons2.th`) and SexyTopo's files
-in a `sexytopo/` folder inside it. Where one sketch file holds several
+`Streamway/Sump1ToSwildons2/Sump1ToSwildons2.th`) and SexyTopo's
+sketches (`.xvi`) in a `Notes/` folder inside it, as SexyTopo exports
+them. Where one sketch file holds several
 surveys, as in `Entrance/EntToWaterChamber/`, they share its folder and
 drawings.
 
