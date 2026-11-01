@@ -31,15 +31,13 @@ who knows the cave) are in `Style.md`.
 
 ## .thconfig layouts
 
-These are set in `gb_layout.thc` and `altitude-colours.th`:
+These are set in `gb_layout.thc` and `altitude-colours.th`, with the
+shared ones in `Style.md` ("Layouts"):
 
-- Water is always blue, so passages never are: the altitude colours
-  (`lookup altitude:warm`, used as `color map-fg altitude:warm`) run
-  from dark red at the bottom of the cave through orange and yellow to
-  green at the entrance.
-- Water is solid blue and sump a darker solid blue (hatched only in the
-  black-and-white layout).
-- Water flow is the same colour as the water.
+- The altitude colours (`lookup altitude:warm`, used as
+  `color map-fg altitude:warm`) run from dark red at the bottom of the
+  cave through orange and yellow to green at the entrance.
+- Water is hatched only in the black-and-white layout.
 - The title carries the licence: GPL v3 or later (`map-comment`).
 - Labels use 4 text sizes, in descending order (`-scale`):
   - `xl`: area names (Long Dry Way, Short Dry Way, Wet Way, Barnes Loop,
@@ -72,5 +70,3 @@ as `Style.md` says ("Checking").
   one hatched patch is one pool.
 - Thin triangles are slope arrows (`point gradient`, wide end to tip),
   not boulders.
-- Water is always blue and nothing else is (the altitude colours avoid
-  blue).
