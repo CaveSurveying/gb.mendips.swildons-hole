@@ -29,44 +29,15 @@ general rules the review taught (walls, symbols, passages over
 passages, cross sections, the pitfalls and how to review with someone
 who knows the cave) are in `Style.md`.
 
-## Not in Style.md yet
-
-General points from the review that `Style.md` does not have yet;
-they go there when its rules are reviewed.
-
-- Do not close the gaps between walls: no invisible walls, and no
-  closed invisible fill line with the walls set `-outline none`.
-  Therion closes the outline itself, joining each wall's end to the
-  nearest free end of another with a straight line
-  (`thscrap::get_outline`). Converted sketches can be so broken up that
-  this joining goes wrong (it jumps across the passage, or closes the
-  outline early); only there does `tidy` keep a gap filled, with the
-  wall carried on across a short one or a presumed wall across a longer
-  one. `therion_chain` in `tools/sketch2therion/tidy.py` checks it.
-- A line inside the passage is not a wall: a `line border` (a ledge,
-  the edge of another level) or a step (see `Style.md`, "Symbols: lines"). In the
-  streamway it's mostly the edge of a step down (a shelf, the stream in
-  the low part): `line floor-step`, with the low side on the line's
-  LEFT (Therion draws the ticks there). The low side is where the water
-  is (flow arrows, pools), not necessarily where the survey line runs.
-  One line per step, and steps don't run through the water.
-- Kinks and folds are conversion faults, never cave: a point where a
-  line steps back on itself over a short distance, or a wall stub
-  under 30 cm turning back off another wall's end. Remove them.
-- Open edited files in xtherion and select a few lines: it should not
-  report errors.
-
 ## .thconfig layouts
 
-These are set in `gb_layout.thc` and `altitude-colours.th`:
+These are set in `gb_layout.thc` and `altitude-colours.th`, with the
+shared ones in `Style.md` ("Layouts"):
 
-- Water is always blue, so passages never are: the altitude colours
-  (`lookup altitude:warm`, used as `color map-fg altitude:warm`) run
-  from dark red at the bottom of the cave through orange and yellow to
-  green at the entrance.
-- Water is solid blue and sump a darker solid blue (hatched only in the
-  black-and-white layout).
-- Water flow is the same colour as the water.
+- The altitude colours (`lookup altitude:warm`, used as
+  `color map-fg altitude:warm`) run from dark red at the bottom of the
+  cave through orange and yellow to green at the entrance.
+- Water is hatched only in the black-and-white layout.
 - The title carries the licence: GPL v3 or later (`map-comment`).
 - Labels use 4 text sizes, in descending order (`-scale`):
   - `xl`: area names (Long Dry Way, Short Dry Way, Wet Way, Barnes Loop,
@@ -99,5 +70,3 @@ as `Style.md` says ("Checking").
   one hatched patch is one pool.
 - Thin triangles are slope arrows (`point gradient`, wide end to tip),
   not boulders.
-- Water is always blue and nothing else is (the altitude colours avoid
-  blue).
