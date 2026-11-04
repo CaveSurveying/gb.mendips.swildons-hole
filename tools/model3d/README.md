@@ -1,11 +1,9 @@
 # The 3D view
 
 The cave in 3D beneath the ground, in the browser: the survey under
-the Environment Agency's LIDAR terrain, draped with satellite imagery.
-It flies in from above to just below the ground, looking up at the
-cave under it, and spins there until you take hold of it. It's in the spirit of the
-[Qgis2threejs](https://github.com/minorua/Qgis2threejs) exports, but
-made straight from the build, so it never goes out of date.
+the Environment Agency's LIDAR terrain, draped with satellite imagery,
+with its passage walls, routes through the cave, AR on an iPhone or iPad,
+and it works offline once opened.
 
 ```bash
 python3 -m tools.model3d      # after the main build; writes output/3d/
@@ -13,78 +11,37 @@ python3 -m tools.model3d      # after the main build; writes output/3d/
 
 ![The 3D view](../../docs/swildons-3d.jpg)
 
-## What's in it
+The page and its build are [cave-viewer](https://github.com/CaveSurveying/cave-viewer),
+shared with other caves' repos, at the release pinned in
+`requirements.txt` (`pip install -r tools/model3d/requirements.txt`).
+`caves.json` at the top of the repo configures it for Swildons; its
+options are cave-viewer's (`caveviewer/schema.json` there). A new
+cave-viewer release is taken up by changing the pin.
 
+## What goes in
+
+- **The centreline** from `output/Swildons.3d`, Stanton's survey
+  included. Legs flagged `duplicate` (Stanton's legs that the resurvey
+  has replaced) are drawn but not routed along (`routing.duplicates`).
 - **Passage walls** from `output/Swildons-walls.lox`: the 3D passages
   Therion builds from the drawings, exported for this page with
-  `-wall-source maps`. Therion's default also builds walls from every
-  splay shot, which come out as spikes wherever a splay reaches up an
-  aven or into a side passage; `Swildons.lox` keeps the default. Only
-  the resurvey has walls.
-- **The centreline** from `output/Swildons.3d`, Stanton's survey
-  included. Splays can be turned on. Legs flagged `duplicate` (Stanton's
-  legs that the resurvey has replaced) are left out.
-- **Names** of passages and places, taken from the labels in the plan
+  `-wall-source maps` (Therion's default also builds walls from every
+  splay, which come out as spikes). Only the resurvey has walls.
+- **Names** of passages and places: this step reads the labels in the plan
   drawings (the same ones the route cards use, from `tools.routes.survey`),
-  each at the height of the nearest station. The entrance is labelled
-  just above the ground.
-- **The ground**: the Environment Agency's 1 m LIDAR composite terrain
-  model (DTM), averaged to 2 m, covering the cave plus 250 m around it.
-  It's fetched once from their WCS service and kept in `surface/lidar/`,
-  so builds don't fetch it again. If the cave grows past the edge, the
-  next build fetches a bigger area: commit the new file.
-- **Satellite imagery** from Esri World Imagery. The page loads it
-  when it opens, so it isn't stored here.
-- **The ground** is see-through (70% by default, with a slider), so
-  from above the cave shows through it with depth as the view turns.
-- **X-ray** (off by default): the ground fades wherever the cave is
-  behind it, from whatever angle you look. The page draws the cave on its own into a
-  small hidden image each frame, blurs it, and uses that to fade the ground.
+  puts each at the nearest station on a leg, and writes them for
+  cave-viewer as `output/cave-viewer/names.json`, with the entrance. They
+  are the places routes go between.
+- **The ground**: the Environment Agency's 1 m LIDAR composite (DTM),
+  averaged to 2 m, the cave plus 250 m round it, fetched once and kept in
+  `surface/lidar/` (if the cave grows past the edge, the next build fetches
+  a bigger area: commit the new file).
+- **Lining up the imagery**: the entrance's lat/long from
+  `output/Swildons-centreline.kml` (Therion, with the exact OSTN15 grid)
+  nudges cave-viewer's own conversion, leaving well under a metre of error.
 
-- **AR** on an iPhone or iPad: a *View in AR* button under the title
-  opens the model in Apple's AR Quick Look, to set on a table or the
-  floor. The page makes the USDZ when it's pressed, with three.js's
-  USDZ exporter, from what's on screen: the walls, centreline and
-  ground as they're shown, at the current vertical scale, 2 m across
-  and lifted 70 cm off the floor so it's easy to walk round and look
-  into. Quick Look has no lines, vertex colours or two-sided faces, so
-  the centreline becomes tubes (the legs joined into runs, bent round
-  the corners, with a ball at each junction and end), the altitude
-  colours come from a ramp texture and the walls get each face twice.
-  The ground gets a second, downward-facing copy with the imagery
-  opaque and self-lit, so it can be seen from below, looking up. The
-  button only appears where Safari says it can do AR
-  (`relList.supports('ar')`).
+The LIDAR (or cave-viewer) failing is only a warning: the 3D view is an
+extra, and the rest of the site still publishes.
 
-Colours are altitude, warm near the surface and cold at depth, from the
-highest station to the lowest. The vertical scale starts at 1.5&times;
-and can be changed to 1&times; or 2.5&times;.
-
-## Lining up the imagery
-
-The survey is on the National Grid (OSGB36), the imagery on Web
-Mercator (WGS84). The tool converts with the Ordnance Survey's
-formulae and a Helmert shift, which is good to a few metres. Then it
-moves everything by the gap between its own position for the entrance
-and the one Therion writes to `output/Swildons-centreline.kml`, which
-uses the exact OSTN15 grid. That leaves well under a metre of error
-over the area. The page gets the result as an affine transform.
-
-## Files
-
-| File | What it is |
-|---|---|
-| `__main__.py` | Reads the build, fetches the LIDAR if needed, writes `output/3d/`. |
-| `formats.py` | Readers for Survex `.3d` (v8), Therion `.lox` and uncompressed GeoTIFF. Plain Python. |
-| `viewer.html` | The page: three.js from jsDelivr, no build step. It is copied to `output/3d/index.html` unchanged. |
-
-The page loads `scene.json` (cave, names, stats, georeference) and
-`terrain.bin` (heights in centimetres, 16-bit little-endian, row by
-row from the north-west corner; 0 means no data). With `CHROMIUM` set,
-as in CI, the tool also saves `preview.png` for the index page by
-opening the page in headless Chrome with `?still`.
-
-Credits shown on the page: the survey; Environment Agency LIDAR,
-© Environment Agency copyright and/or database right, Open Government
-Licence v3; imagery © Esri, Maxar, Earthstar Geographics and the GIS
-User Community.
+`tools.webmap` uses this step's grid helpers (`grid_to_ll`, `fit_affine`,
+`kml_entrance`, `crop_png`) and the ground it saves in `output/3d/`.

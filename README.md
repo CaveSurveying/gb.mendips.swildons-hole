@@ -160,7 +160,7 @@ drawings.
 | `therion.ini`, `fonts/` | Sets the maps in Source Sans 3 (SIL Open Font License, in `fonts/`). |
 | `tools/` | The sketch converter and helpers for adding new trips: see [tools/README.md](tools/README.md). |
 | `routes/`, `tools/routes/` | Route card definitions, and the tool that makes them. |
-| `tools/model3d/`, `surface/lidar/` | The 3D view, and the LIDAR ground it uses (fetched once, kept here). |
+| `caves.json`, `tools/model3d/`, `surface/lidar/` | The 3D view, built by [cave-viewer](https://github.com/CaveSurveying/cave-viewer) as `caves.json` configures it, and the LIDAR ground it uses (fetched once, kept here). |
 | `legacy/` | The SVN project's own configs and its Survex export (`SwildonsHole.svx`). |
 
 ### Building it yourself

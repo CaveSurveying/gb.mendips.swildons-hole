@@ -1,78 +1,40 @@
-"""The 3D view: the cave in 3D beneath the ground surface.
+"""The 3D view: the cave in 3D beneath the ground surface, by cave-viewer.
 
     python3 -m tools.model3d      # after the main build; writes output/3d/
 
-Reads what Therion has just built: the centreline and stations from
-output/Swildons.3d, the passage walls from output/Swildons-walls.lox, passage
-names from the plan drawings (via tools.routes.survey and
-output/Swildons.sql) and the entrance's lat/long from
-output/Swildons-centreline.kml. The ground is the Environment Agency's
-1 m LIDAR terrain model, fetched once and kept in surface/lidar/. The
-satellite imagery is loaded by the page itself, from Esri.
+The page and its build are cave-viewer's
+(https://github.com/CaveSurveying/cave-viewer, pinned in
+tools/model3d/requirements.txt), configured by caves.json: the centreline
+from output/Swildons.3d, the passage walls from output/Swildons-walls.lox,
+the entrance's lat/long from output/Swildons-centreline.kml, and the
+Environment Agency's 1 m LIDAR, fetched once and kept in surface/lidar/.
+This step adds the passage names from the plan drawings (via
+tools.routes.survey and output/Swildons.sql), each at the nearest station,
+as output/cave-viewer/names.json, then runs cave-viewer. With CHROMIUM set
+it also saves a preview.png for the index page.
 
-Writes output/3d/index.html, scene.json and terrain.bin. With CHROMIUM
-set to a Chrome or Chromium binary it also saves a preview.png for the
-index page.
+The LIDAR failing (or cave-viewer) is only a warning: the 3D view is an
+extra, and shouldn't stop the rest of the site being published.
+
+The helpers below (the grid to lat/long, the entrance from the KML, PNG
+cropping) are tools.webmap's too.
 """
 import argparse
-import array
-import datetime
-import gzip
 import json
 import math
 import os
 import re
-import shutil
 import struct
 import subprocess
 import sys
-import urllib.request
 import zlib
 
-from tools.model3d.formats import read_3d, read_lox_walls, read_tiff
+from tools.model3d.formats import read_3d
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 # Swildons_Centreline.th puts the survey in OSGB:ST, the ST 100 km square
 # of the National Grid: add these to get full grid references.
 ST = (300000, 100000)
-WCS = ('https://environment.data.gov.uk/spatialdata/lidar-composite-digital-terrain-model-dtm-1m/wcs'
-       '?service=WCS&version=2.0.1&request=GetCoverage'
-       '&coverageId=13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m'
-       '&subset=E({e0},{e1})&subset=N({n0},{n1})&format=image/tiff')
-UA = 'uk_mendips_swildons-hole 3D view (https://github.com/CaveSurveying/uk_mendips_swildons-hole)'
-MARGIN = 250      # metres of ground around the cave
-STEP = 2          # metres between terrain samples in the model
-
-
-# -- the ground -----------------------------------------------------------------------
-
-def lidar(e0, n0, e1, n1, cache='surface/lidar'):
-    """Ground heights over a National Grid box, every STEP metres from the
-    top-left corner, as a list of rows of metres (None where there is no
-    LIDAR). Fetched from the Environment Agency the first time and kept."""
-    w, h = (e1 - e0) // STEP, (n1 - n0) // STEP
-    f = os.path.join(cache, f'dtm-{e0}-{n0}-{e1}-{n1}-{STEP}m.u16.gz')
-    if not os.path.exists(f):
-        print(f'fetching LIDAR for {e0},{n0} to {e1},{n1}', file=sys.stderr)
-        req = urllib.request.Request(WCS.format(e0=e0, e1=e1, n0=n0, n1=n1), headers={'User-Agent': UA})
-        tw, th, v, (x0, y0), px = read_tiff(urllib.request.urlopen(req, timeout=120).read())
-        if (tw, th, x0, y0, px) != (e1 - e0, n1 - n0, e0, n1, 1.0):
-            raise ValueError(f'unexpected LIDAR grid {tw}x{th} at {x0},{y0} ({px} m)')
-        out = array.array('H')
-        for j in range(h):
-            for i in range(w):
-                s = [v[(j * STEP + b) * tw + i * STEP + a] for b in range(STEP) for a in range(STEP)]
-                s = [x for x in s if x > -1000]
-                out.append(round(sum(s) / len(s) * 100) if s else 0)    # centimetres; 0 = none
-        if sys.byteorder != 'little':
-            out.byteswap()
-        os.makedirs(cache, exist_ok=True)
-        with gzip.open(f, 'wb') as g:
-            g.write(out.tobytes())
-    raw = array.array('H', gzip.open(f).read())
-    if sys.byteorder != 'little':
-        raw.byteswap()
-    return w, h, raw
+NAMES = 'output/cave-viewer/names.json'
 
 
 # -- National Grid to lat/long ----------------------------------------------------------
@@ -161,7 +123,7 @@ def kml_entrance(kml='output/Swildons-centreline.kml'):
     return (float(m.group(2)), float(m.group(1))) if m else None
 
 
-# -- the scene ------------------------------------------------------------------------
+# -- the names ------------------------------------------------------------------------
 
 def place_names():
     """Passage names from the plan drawings, each at the height of the
@@ -189,132 +151,24 @@ def place_names():
     return out
 
 
-def build(out_dir, chromium=None):
+def write_names(path=NAMES):
+    """names.json for cave-viewer: the entrance, and each name from the plan
+    drawings at the nearest station on a leg (by its name in Swildons.3d)."""
     legs, stations = read_3d('output/Swildons.3d')
-    lox = 'output/Swildons-walls.lox'     # walls from the drawings only (swildons.thconfig)
-    walls = read_lox_walls(lox) if os.path.exists(lox) else []
-    cave = [p for a, b, f in legs if not f & 1 for p in (a, b)]
-    xs, ys, zs = zip(*cave)
-
-    # the ground: the cave's extent plus a margin, on a 50 m grid
-    e0 = int(math.floor((min(xs) + ST[0] - MARGIN) / 50) * 50)
-    e1 = int(math.ceil((max(xs) + ST[0] + MARGIN) / 50) * 50)
-    n0 = int(math.floor((min(ys) + ST[1] - MARGIN) / 50) * 50)
-    n1 = int(math.ceil((max(ys) + ST[1] + MARGIN) / 50) * 50)
-    try:
-        tw, th, heights = lidar(e0, n0, e1, n1)
-    except (OSError, ValueError) as e:
-        # an extra, so it shouldn't stop the rest of the site being published
-        print(f'::warning::no 3D view: could not get the LIDAR ({e})', file=sys.stderr)
-        return
-    # the scene's origin: the middle of the ground, in survey coordinates
-    ox, oy = (e0 + e1) / 2 - ST[0], (n0 + n1) / 2 - ST[1]
-
-    # georeference for the imagery: survey x, y (from the origin) to Web
-    # Mercator, nudged so the entrance lands where Therion (with OSTN15) puts it
-    ent = next(((n, p) for n, p, f in stations if f & 4), None)
-    shift = (0.0, 0.0)
-    ll = kml_entrance()
-    if ent and ll:
-        mine = grid_to_ll(ent[1][0] + ST[0], ent[1][1] + ST[1])
-        shift = (ll[0] - mine[0], ll[1] - mine[1])
-    pairs = []
-    for i in range(5):
-        for j in range(5):
-            x, y = e0 + (e1 - e0) * i / 4, n0 + (n1 - n0) * j / 4
-            lat, lon = grid_to_ll(x, y)
-            pairs.append(((x - ST[0] - ox, y - ST[1] - oy), mercator(lat + shift[0], lon + shift[1])))
-    merc = fit_affine(pairs)
-
-    def r(v):
-        return round(v, 2)
-
-    def rel(p):
-        return [r(p[0] - ox), r(p[1] - oy), r(p[2])]
-
-    kinds = {'legs': [], 'duplicates': [], 'splays': [], 'surface': []}
-    for a, b, f in legs:
-        k = 'surface' if f & 1 else 'splays' if f & 4 else 'duplicates' if f & 2 else 'legs'
-        kinds[k] += rel(a) + rel(b)
-    wall_pos, wall_idx = [], []
-    for pts, tris in walls:
-        base = len(wall_pos) // 3
-        for p in pts:
-            wall_pos += rel(p)
-        for t in tris:
-            wall_idx += [base + i for i in t]
-
-    names = [{'t': t, 'p': rel((x, y, z))} for t, x, y, z in place_names()]
-    for n, p, f in stations:
-        if f & 4:
-            names.insert(0, {'t': 'Entrance', 'p': rel(p), 'entrance': True})
-
-    length = sum(math.dist(a, b) for a, b, f in legs if not f & 7)
-    hs = [v / 100 for v in heights if v]
-    scene = {
-        'title': 'Swildons Hole',
-        'subtitle': 'Priddy, Mendip',
-        'built': datetime.date.today().isoformat(),
-        'origin': [ox + ST[0], oy + ST[1]],
-        'grid_ref': f'ST {round(ent[1][0]) if ent else ""} {round(ent[1][1]) if ent else ""}',
-        'stats': {'length': round(length), 'depth': round(max(zs) - min(zs)),
-                  'top': r(max(zs)), 'bottom': r(min(zs))},
-        'terrain': {'file': 'terrain.bin', 'w': tw, 'h': th, 'step': STEP,
-                    'x0': e0 - ST[0] - ox, 'y0': n1 - ST[1] - oy, 'min': min(hs), 'max': max(hs)},
-        'merc': merc,
-        'walls': {'pos': wall_pos, 'idx': wall_idx},
-        'names': names,
-        **kinds,
-    }
-    os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, 'scene.json'), 'w') as f:
-        json.dump(scene, f, separators=(',', ':'))
-    with open(os.path.join(out_dir, 'terrain.bin'), 'wb') as f:
-        f.write(heights.tobytes())
-    shutil.copy(os.path.join(HERE, 'viewer.html'), os.path.join(out_dir, 'index.html'))
-    print(f'3D view written to {out_dir}: {len(legs)} legs, {len(walls)} wall meshes, '
-          f'{len(names)} names, ground {tw}x{th} at {STEP} m', file=sys.stderr)
-    if chromium:
-        preview(chromium, out_dir)
+    on_leg = {tuple(p) for a, b, f in legs if not f & 1 for p in (a, b)}
+    named = [(n, p) for n, p, f in stations if n and tuple(p) in on_leg]
+    ents = {n: 'Entrance' for n, p, f in stations if f & 4}
+    places = {}
+    for t, x, y, z in place_names():
+        n = min(named, key=lambda s: math.hypot(s[1][0] - x, s[1][1] - y))[0]
+        places.setdefault(t, n)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump({'entrances': ents, 'places': places}, open(path, 'w'), indent=2, ensure_ascii=False)
+    print(f'{len(places)} passage names for the 3D view', file=sys.stderr)
 
 
-def preview(chromium, out_dir, port=8765, size=(1200, 750)):
-    """A still of the view for the index page, by headless Chrome."""
-    import functools
-    import http.server
-    import threading
 
-    class Quiet(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
-    srv = http.server.ThreadingHTTPServer(('127.0.0.1', port), functools.partial(Quiet, directory=out_dir))
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
-    png = os.path.abspath(os.path.join(out_dir, 'preview.png'))
-    chrome = [chromium, '--headless=new', '--no-sandbox', '--hide-scrollbars', f'--window-size={size[0]},{size[1]}']
-    try:
-        # Headless Chrome's screenshot is the whole window, which is taller
-        # than the page by a toolbar's height: find out by how much, to crop.
-        r = subprocess.run(chrome + ['--dump-dom', 'data:text/html,<script>document.write(innerHeight)</script>'],
-                           capture_output=True, text=True, timeout=60)
-        m = re.search(r'<body>(\d+)', r.stdout)
-        # Now and then Chrome takes the shot before three.js has arrived from
-        # the CDN, leaving only the loading screen (a small, plain PNG): retry.
-        for _ in range(3):
-            subprocess.run(chrome + ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist',
-                                     '--virtual-time-budget=30000', f'--screenshot={png}',
-                                     f'http://127.0.0.1:{port}/index.html?still'],
-                           check=True, timeout=180, capture_output=True)
-            if os.path.getsize(png) > 300_000:
-                break
-        else:
-            print('the preview only shows the loading screen', file=sys.stderr)
-        if m:
-            crop_png(png, int(m.group(1)))
-    except (subprocess.SubprocessError, OSError, ValueError) as e:
-        print(f'no preview: {e}', file=sys.stderr)
-    finally:
-        srv.shutdown()
-
+# -- PNGs ---------------------------------------------------------------------------
 
 def crop_png(path, height):
     """Keep the top rows of an 8-bit PNG. Each row's filter refers only to
@@ -342,9 +196,12 @@ def crop_png(path, height):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--out', default='output/3d')
-    args = ap.parse_args()
-    build(args.out, os.environ.get('CHROMIUM'))
+    ap.parse_args()
+    write_names()
+    r = subprocess.run([sys.executable, '-m', 'caveviewer', 'build', 'caves.json', '--out', 'output', '--steps', 'survey,model'])
+    if r.returncode:
+        # an extra, so it shouldn't stop the rest of the site being published
+        print('::warning::no 3D view: cave-viewer failed (see above)', file=sys.stderr)
 
 
 if __name__ == '__main__':
