@@ -1,0 +1,50 @@
+{
+  "_comment": "The 3D view (output/3d/), built by cave-viewer (https://github.com/CaveSurveying/cave-viewer) from what Therion has just built: python3 -m tools.model3d runs it. Its options are cave-viewer's caveviewer/schema.json.",
+  "work": "output/cave-viewer",
+  "caves": [
+    {
+      "id": "swildons",
+      "name": "Swildons Hole",
+      "short_name": "Swildons",
+      "area": "Priddy, Mendip",
+      "path": "3d",
+      "credit": "the Swildons Hole resurvey and W.&nbsp;I.&nbsp;Stanton, built with Therion",
+      "data": {
+        "url": "https://github.com/CaveSurveying/uk_mendips_swildons-hole",
+        "label": "the survey data"
+      },
+      "grid": {
+        "offset": [
+          300000,
+          100000
+        ]
+      },
+      "survey": {
+        "type": "survex",
+        "file": "output/Swildons.3d"
+      },
+      "names": {
+        "file": "output/cave-viewer/names.json"
+      },
+      "walls": {
+        "lox": "output/Swildons-walls.lox"
+      },
+      "georef": {
+        "kml": "output/Swildons-centreline.kml"
+      },
+      "routing": {
+        "duplicates": false
+      },
+      "terrain": {
+        "type": "ea",
+        "step": 2,
+        "margin": 250,
+        "align": 50,
+        "cache": "surface/lidar"
+      },
+      "drawn": {
+        "type": "none"
+      }
+    }
+  ]
+}

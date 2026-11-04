@@ -112,8 +112,11 @@ jobs:
           # over OpenStreetMap (tiles cached in surface/tiles/)
           python3 -m tools.surface
           # the 3D view: the cave under the LIDAR ground (cached in
-          # surface/lidar/), with a still for the index page
-          python3 -m tools.model3d
+          # surface/lidar/), with a still for the index page, built by
+          # cave-viewer (the release pinned in tools/model3d/requirements.txt)
+          python3 -m venv "$RUNNER_TEMP/cave-viewer"
+          "$RUNNER_TEMP/cave-viewer/bin/pip" install -q -r tools/model3d/requirements.txt
+          "$RUNNER_TEMP/cave-viewer/bin/python" -m tools.model3d
           # the GeoJSON downloads and the 2D map over the ground, from
           # Therion's shapefiles and the LIDAR tools.model3d just saved.
           # shapely clips the area fills to the walls, as Therion does.
