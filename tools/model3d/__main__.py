@@ -198,7 +198,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.parse_args()
     write_names()
-    r = subprocess.run([sys.executable, '-m', 'caveviewer', 'build', 'caves.json', '--out', 'output', '--steps', 'survey,model'])
+    r = subprocess.run([sys.executable, '-m', 'caveviewer', 'build', 'caves.json', '--out', 'output', '--steps', 'survey,model,drawn'])
     if r.returncode:
         # an extra, so it shouldn't stop the rest of the site being published
         print('::warning::no 3D view: cave-viewer failed (see above)', file=sys.stderr)

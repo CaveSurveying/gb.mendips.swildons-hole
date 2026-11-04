@@ -30,7 +30,7 @@ jobs:
       # and Therion will not create it -- it fails at the copy step with
       # "cannot copy: No such file or directory".
       - name: Create output directory
-        run: mkdir -p output
+        run: mkdir -p output output/cave-viewer     # (cave-viewer/: the 3D view's plan, swildons.thconfig)
 
       # The survey is tied to the OS grid (cs OSGB:ST in
       # Swildons_Centreline.th), and turning that into lat/long for the

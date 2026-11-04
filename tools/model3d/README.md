@@ -36,6 +36,10 @@ cave-viewer release is taken up by changing the pin.
   averaged to 2 m, the cave plus 250 m round it, fetched once and kept in
   `surface/lidar/` (if the cave grows past the edge, the next build fetches
   a bigger area: commit the new file).
+- **The drawn survey** for the 2D plan: the colour plan sheet, drawn again
+  by `swildons.thconfig` for this (layout `plan-web`: on grid north, with
+  the grid's coordinates, which place it) as `output/cave-viewer/plan.svg`.
+  It covers what the sheet covers, the resurvey from the Entrance to Sump 1.
 - **Lining up the imagery**: the entrance's lat/long from
   `output/Swildons-centreline.kml` (Therion, with the exact OSTN15 grid)
   nudges cave-viewer's own conversion, leaving well under a metre of error.
