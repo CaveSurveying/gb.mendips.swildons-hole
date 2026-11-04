@@ -90,7 +90,8 @@ jobs:
           for d in pr-*/; do
             [ -d "$d" ] || continue
             n="${d#pr-}"; n="${n%/}"
-            if [ "$n" = "$NUMBER" ] || [[ "$open" != *" $n "* ]]; then git rm -rq --ignore-unmatch "$d"; rm -rf "$d"; fi
+            # (-f: on the new orphan branch the clone's files are only staged, which git rm won't drop without it)
+            if [ "$n" = "$NUMBER" ] || [[ "$open" != *" $n "* ]]; then git rm -rqf --ignore-unmatch "$d"; rm -rf "$d"; fi
           done
           dest="pr-$NUMBER/${SHA:0:7}"
           mkdir -p "$dest"

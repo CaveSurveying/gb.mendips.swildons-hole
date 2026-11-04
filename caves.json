@@ -43,8 +43,10 @@
         "cache": "surface/lidar"
       },
       "drawn": {
-        "type": "none"
-      }
+        "type": "therion-svg",
+        "svg": "output/cave-viewer/plan.svg"
+      },
+      "licence": "Licence: GNU GPL v3 (LICENSE in the survey data)."
     }
   ]
 }

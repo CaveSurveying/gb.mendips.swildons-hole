@@ -210,6 +210,18 @@ layout plan-sheet
   copy LayoutColourSymbols
 endlayout
 
+# The plan for the 3D view's 2D plan (cave-viewer, tools/model3d): the
+# colour sheet with the National Grid's coordinates on its grid, which
+# place it under the centreline.
+layout plan-web
+  copy plan-sheet
+  north grid      # (on the grid, as the 3D view is, not turned to true north as the sheets are)
+  grid bottom
+  grid-size 100 100 100 m
+  grid-coords border
+  colour map-bg transparent
+endlayout
+
 # Same drawing for a black-and-white printer: no altitude tint and no
 # colour symbols, passages filled light grey.
 layout plan-bw
@@ -282,6 +294,7 @@ export map -projection extended        -layout streamway-elevation -o output/Swi
 
 # Vector and GIS versions of the plan.
 export map -projection plan -layout plan-sheet -fmt svg -o output/Swildons-plan.svg
+export map -projection plan -layout plan-web -fmt svg -o output/cave-viewer/plan.svg
 export map -projection plan -fmt kml -o output/Swildons-plan.kml
 # Shapefiles in OS grid metres, which tools/webmap turns into the
 # GeoJSON downloads and the map page. Therion writes each as a
