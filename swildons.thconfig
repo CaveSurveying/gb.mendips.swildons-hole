@@ -195,9 +195,10 @@ layout plan-sheet
   symbol-hide point station   # survey stations are for surveyors, not for finding the way
 
   # The cave runs west to Sump 1, leaving room under the middle of the
-  # plan: the header starts there, just right of Tratman's Temple, and
-  # runs in one row under the Entrance Series, which keeps the sheet thin.
-  map-header 31 20 nw
+  # plan: the header starts there, east of the passage running south from
+  # Tratman's Temple (at 31 the title sat on top of it), and runs in one
+  # row under the Entrance Series, which keeps the sheet thin.
+  map-header 36 20 nw
   legend-columns 4
   legend-width 17 cm
   copy header-plan
@@ -234,9 +235,10 @@ layout plan-bw
   symbol-hide point station   # survey stations are for surveyors, not for finding the way
 
   # The cave runs west to Sump 1, leaving room under the middle of the
-  # plan: the header starts there, just right of Tratman's Temple, and
-  # runs in one row under the Entrance Series, which keeps the sheet thin.
-  map-header 31 20 nw
+  # plan: the header starts there, east of the passage running south from
+  # Tratman's Temple (at 31 the title sat on top of it), and runs in one
+  # row under the Entrance Series, which keeps the sheet thin.
+  map-header 36 20 nw
   legend-columns 4
   legend-width 17 cm
   copy header-plan

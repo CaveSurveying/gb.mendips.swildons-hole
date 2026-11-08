@@ -29,6 +29,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -37,6 +38,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 UA = 'uk_mendips_swildons-hole PR diff (https://github.com/CaveSurveying/uk_mendips_swildons-hole)'
+FETCH_RETRY_WAITS = [2, 5, 15, 30]   # seconds between tries of a published sheet
 DPI = 150           # 1 m at 1:500 is about 12 px: enough to see a wall move
 THRESHOLD = 0.25    # how much a pixel's ink must change to count...
 SLACK = 1           # ...beyond its neighbours this many px away, so a sub-pixel shift doesn't
@@ -252,13 +254,24 @@ def fetch(base, name, tmp):
         path = os.path.join(base, name)
         return path if os.path.exists(path) else None
     url = urllib.parse.urljoin(base if base.endswith('/') else base + '/', name)
-    try:
-        data = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA}),
-                                      timeout=120).read()
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return None
-        raise
+    # GitHub Pages now and then answers a request with a 503 or drops it,
+    # so try a few times before giving up on the whole comparison.
+    for wait in FETCH_RETRY_WAITS + [None]:
+        try:
+            data = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA}),
+                                          timeout=120).read()
+            break
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            if (e.code < 500 and e.code != 429) or wait is None:
+                raise
+            print(f'{name}: HTTP {e.code}, trying again in {wait} s', file=sys.stderr)
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if wait is None:
+                raise
+            print(f'{name}: {e}, trying again in {wait} s', file=sys.stderr)
+        time.sleep(wait)
     path = os.path.join(tmp, name)
     with open(path, 'wb') as f:
         f.write(data)
