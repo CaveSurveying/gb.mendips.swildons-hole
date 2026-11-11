@@ -72,7 +72,7 @@ sheets.
 
 Beyond the resurvey only W. I. Stanton's 1950s–60s survey exists
 (`Stanton/`, one folder per trip). The
-[plan with Stanton's survey](https://cavesurveying.github.io/uk_mendips_swildons-hole/Swildons-plan-with-stanton.pdf)
+[plan with Stanton's survey](https://cavesurveying.github.io/gb.mendips.swildons-hole/Swildons-plan-with-stanton.pdf)
 shows his stations next to the resurvey's. When a new trip reaches
 one of them:
 

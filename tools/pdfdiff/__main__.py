@@ -1,6 +1,6 @@
 """Visual diffs of the built sheets, for reviewing a pull request.
 
-    python3 -m tools.pdfdiff --base https://cavesurveying.github.io/uk_mendips_swildons-hole/ \\
+    python3 -m tools.pdfdiff --base https://cavesurveying.github.io/gb.mendips.swildons-hole/ \\
                              --head output --out pr-diff
 
 Renders every sheet (output/*.pdf) from this build and from the base (the
@@ -37,7 +37,7 @@ import urllib.request
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-UA = 'uk_mendips_swildons-hole PR diff (https://github.com/CaveSurveying/uk_mendips_swildons-hole)'
+UA = 'gb.mendips.swildons-hole PR diff (https://github.com/CaveSurveying/gb.mendips.swildons-hole)'
 FETCH_RETRY_WAITS = [2, 5, 15, 30]   # seconds between tries of a published sheet
 DPI = 150           # 1 m at 1:500 is about 12 px: enough to see a wall move
 THRESHOLD = 0.25    # how much a pixel's ink must change to count...
