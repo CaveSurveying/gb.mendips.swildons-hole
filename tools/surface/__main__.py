@@ -32,7 +32,7 @@ import urllib.request
 from tools.routes import render as R
 
 TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-UA = 'uk_mendips_swildons-hole surface map (https://github.com/CaveSurveying/uk_mendips_swildons-hole)'
+UA = 'gb.mendips.swildons-hole surface map (https://github.com/CaveSurveying/gb.mendips.swildons-hole)'
 WALK = '#1d8a4e'
 PARK = '#1f5fbf'
 esc = R.esc

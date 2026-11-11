@@ -564,7 +564,7 @@ def write_standalone(path, page, config, drawing, centreline):
     blob = json.dumps(data, separators=(',', ':'), ensure_ascii=False).replace('</', '<\\/')
     html = open(os.path.join(HERE, 'viewer.html'), encoding='utf-8').read()
     html = html.replace('<!--MAP_DATA-->', f'<script>window.MAP_DATA = {blob};</script>', 1)
-    html = html.replace('href="../index.html"', 'href="https://cavesurveying.github.io/uk_mendips_swildons-hole/"')
+    html = html.replace('href="../index.html"', 'href="https://cavesurveying.github.io/gb.mendips.swildons-hole/"')
     os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(html)

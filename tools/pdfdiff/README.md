@@ -18,7 +18,7 @@ To run it yourself, after a build:
 
 ```bash
 pip install numpy pillow      # and poppler-utils, for pdftoppm
-python3 -m tools.pdfdiff --base https://cavesurveying.github.io/uk_mendips_swildons-hole/ --head output --out pr-diff
+python3 -m tools.pdfdiff --base https://cavesurveying.github.io/gb.mendips.swildons-hole/ --head output --out pr-diff
 ```
 
 `--base` can also be a folder of PDFs, for example an earlier build's
