@@ -21,9 +21,16 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from markdown import to_html  # noqa: E402  (web/markdown.py)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "output")
 PREVIEW_DIR = os.path.join(OUT, "previews")
+# what the survey is, and isn't: a section of the page, and a line under the title
+ABOUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "about.md")
+NOTICE = ("This survey has about 4.2 km of Swildons Hole&rsquo;s 9 km: nothing beyond "
+          "Swildons 2, and past Sump 1 only Stanton&rsquo;s centreline from the 1950s and 60s.")
 
 # (filename, title, blurb) -- order is the order they appear on the page.
 SHEETS = [
@@ -245,6 +252,12 @@ def main():
   footer {{ margin-top:56px; padding-top:20px; border-top:1px solid var(--line);
     color:var(--muted); font-size:13px; }}
   footer a {{ color:var(--accent); }}
+  .notice {{ margin:14px 0 0; padding:10px 14px; border-left:3px solid #c08a2a;
+    background:rgba(192,138,42,.1); border-radius:4px; }}
+  .about {{ max-width:760px; }}
+  .about h3 {{ font-size:18px; font-weight:600; margin:24px 0 6px; }}
+  .about li {{ margin:4px 0; }}
+  .about a {{ color:var(--accent); }}
   code {{ font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:.9em; }}
 </style>
 </head>
@@ -253,6 +266,7 @@ def main():
 <header>
   <h1>Swildons Hole</h1>
   <p class="sub">Priddy, Mendip &mdash; resurvey led by Paul &lsquo;Footleg&rsquo; Fretwell. Built automatically from the survey data in this repository.</p>
+  <p class="notice">{NOTICE}</p>
 </header>
 
 <dl class="meta">""")
@@ -266,6 +280,9 @@ def main():
         doc.append(f'  <div><dt>Commit</dt><dd><a href="{e(link)}"><code>{e(short)}</code></a>'
                    + (f" on {e(ref)}" if ref else "") + "</dd></div>")
     doc.append("</dl>")
+
+    # what the survey is, and isn't (web/about.md)
+    doc.append(f'<h2>About the survey</h2>\n<div class="about">{to_html(open(ABOUT, encoding="utf-8").read(), top=3)}</div>')
 
     doc.append("<h2>Sheets</h2>\n<div class=\"grid\">")
     for c in cards:
